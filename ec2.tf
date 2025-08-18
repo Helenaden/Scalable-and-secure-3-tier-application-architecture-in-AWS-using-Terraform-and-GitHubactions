@@ -18,8 +18,8 @@ data "aws_ami" "amazon_linux_2" {
   }
 }
 
-resource "aws_key_pair" "terraform_key" {
-  key_name   = "ec2-new-key"
+resource "aws_key_pair" "terraform_key_3" {
+  key_name   = "ec2-new3-key"
   public_key = tls_private_key.rsa.public_key_openssh
 }
 
@@ -28,13 +28,14 @@ resource "tls_private_key" "rsa" {
   rsa_bits  = 4096
 }
 
-resource "aws_secretsmanager_secret" "ec2_private_key" {
-  name        = "ec2-private-key"
+resource "aws_secretsmanager_secret" "ec2_private_key_new" {
+  name        = "ec2-private-key-new"
   description = "EC2 private key for SSH access"
+  kms_key_id  = aws_kms_key.secrets_key.arn
 }
 
 resource "aws_secretsmanager_secret_version" "ec2_private_key_version" {
-  secret_id     = aws_secretsmanager_secret.ec2_private_key.id
+  secret_id     = aws_secretsmanager_secret.ec2_private_key_new.id
   secret_string = tls_private_key.rsa.private_key_pem
 }
 
@@ -53,7 +54,7 @@ resource "aws_launch_template" "web_tier_template" {
   name_prefix     = "web-tier-"
   image_id        = data.aws_ami.amazon_linux_2.id
   instance_type   = "t2.micro"
-  key_name        = aws_key_pair.terraform_key.key_name
+  key_name        = aws_key_pair.terraform_key_3.key_name
   user_data       = base64encode(data.template_file.web_user_data.rendered)
 
   block_device_mappings {
@@ -83,7 +84,7 @@ resource "aws_launch_template" "app_tier_template" {
   name_prefix     = "app-tier-"
   image_id        = data.aws_ami.amazon_linux_2.id
   instance_type   = "t2.micro"
-  key_name        = aws_key_pair.terraform_key.key_name
+  key_name        = aws_key_pair.terraform_key_3.key_name
   user_data       = base64encode(data.template_file.app_user_data.rendered)
 
   block_device_mappings {

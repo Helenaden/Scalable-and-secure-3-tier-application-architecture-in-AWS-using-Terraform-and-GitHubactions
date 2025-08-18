@@ -57,7 +57,7 @@ data "aws_iam_policy_document" "web_tier_policy_doc" {
       # The ARN of the secret we'll create later in kms_secrets.tf
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:db-credentials*",
       # New: Permission to retrieve the EC2 private key
-      aws_secretsmanager_secret.ec2_private_key.arn,
+      aws_secretsmanager_secret.ec2_private_key_new.arn,
     ]
   }
 }
@@ -82,7 +82,7 @@ data "aws_iam_policy_document" "app_tier_policy_doc" {
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:db-credentials*",
       # New: Permission to retrieve the EC2 private key
-      aws_secretsmanager_secret.ec2_private_key.arn,
+      aws_secretsmanager_secret.ec2_private_key_new.arn,
     ]
   }
 
@@ -111,10 +111,10 @@ resource "aws_iam_role_policy" "app_tier_policy" {
 #Add an IAM policy for the Inspector agent.
 resource "aws_iam_role_policy_attachment" "inspector_agent_web_policy_attach" {
   role       = aws_iam_role.web_tier_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy_attachment" "inspector_agent_app_policy_attach" {
   role       = aws_iam_role.app_tier_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }

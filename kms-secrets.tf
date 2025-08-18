@@ -44,8 +44,8 @@ resource "aws_kms_key" "secrets_key" {
 }
 
 # Create an RDS MySQL database secret
-resource "aws_secretsmanager_secret" "db_credentials" {
-  name                     = "db-credentials"
+resource "aws_secretsmanager_secret" "db_credentials_new" {
+  name                     = "db-credentials-new"
   description              = "RDS MySQL database credentials"
   kms_key_id               = aws_kms_key.secrets_key.arn
 }
@@ -53,7 +53,7 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 # Store the actual secret value. 
 # This should be a securely generated value, not hardcoded.
 resource "aws_secretsmanager_secret_version" "db_credentials_version" {
-  secret_id = aws_secretsmanager_secret.db_credentials.id
+  secret_id = aws_secretsmanager_secret.db_credentials_new.id
   secret_string = jsonencode({
     username = var.db_username
     password = random_password.db_password.result
@@ -63,6 +63,7 @@ resource "aws_secretsmanager_secret_version" "db_credentials_version" {
 resource "random_password" "db_password" {
   length  = 16
   special = true
+  override_special = "!#$%&*()_+-=[]{}<>:;?|~" # Customize as needed
   keepers = {
     version = "1"
   }
