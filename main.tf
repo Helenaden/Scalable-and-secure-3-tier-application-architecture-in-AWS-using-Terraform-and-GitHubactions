@@ -9,5 +9,4 @@ terraform {
 
 provider "aws" {
   region  = "us-east-1" # You can change this to your preferred AWS region
-  profile = var.profile
 }
