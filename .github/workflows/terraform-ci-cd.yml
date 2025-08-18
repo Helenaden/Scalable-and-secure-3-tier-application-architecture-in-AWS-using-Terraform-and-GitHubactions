@@ -8,6 +8,11 @@ on:
     branches:
       - main
 
+# Define a concurrency group to cancel older, in-progress runs when a new one starts.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Grant the GitHub Actions runner permissions to get an ID token.
 permissions:
   id-token: write  # This is crucial for OIDC authentication
@@ -38,7 +43,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.12.2
+          terraform_version: 1.6.0
 
       # Step 4: Inject sensitive variables from a GitHub Secret.
       - name: Create tfvars file from secret
