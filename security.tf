@@ -125,11 +125,13 @@ resource "aws_wafv2_web_acl" "web_acl" {
   # This rule is a pre-configured rule set from AWS
   # that protects against common exploits like SQLi and XSS.
   rule {
-    name     = "AWS-AWSManagedRulesCommonRuleSet"
+    # Use a unique name for this rule
+    name     = "CommonRuleSet"
     priority = 1
     statement {
       managed_rule_group_statement {
         vendor_name = "AWS"
+        # This is the correct managed rule group name from AWS
         name        = "AWSManagedRulesCommonRuleSet"
       }
     }
@@ -139,18 +141,20 @@ resource "aws_wafv2_web_acl" "web_acl" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "CommonRuleSet"
+      metric_name                = "CommonRuleSetMetrics" # Must be unique
       sampled_requests_enabled   = true
     }
   }
 
-  # Rule to protect against Log4j2 vulnerabilities
+  # Rule to protect against Log4j2 vulnerabilities and other bad inputs
   rule {
-    name     = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
+    # Use a unique name for this rule
+    name     = "KnownBadInputs"
     priority = 2
     statement {
       managed_rule_group_statement {
         vendor_name = "AWS"
+        # This is the correct managed rule group name from AWS
         name        = "AWSManagedRulesKnownBadInputsRuleSet"
       }
     }
@@ -159,7 +163,7 @@ resource "aws_wafv2_web_acl" "web_acl" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "KnownBadInputsRuleSet"
+      metric_name                = "KnownBadInputsMetrics" # Must be unique
       sampled_requests_enabled   = true
     }
   }

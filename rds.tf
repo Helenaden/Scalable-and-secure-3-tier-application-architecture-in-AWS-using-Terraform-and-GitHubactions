@@ -43,4 +43,12 @@ resource "aws_db_instance" "database-instance" {
   db_name  = "webappdb"
   # amazonq-ignore-next-line
   skip_final_snapshot = true
+
+  # Enable log exports to CloudWatch
+  enabled_cloudwatch_logs_exports = [
+    "audit",
+    "error",
+    "general",
+    "slowquery"
+  ]
 }
