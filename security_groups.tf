@@ -64,20 +64,55 @@ resource "aws_security_group" "webserver_security_group" {
     Name = "Web Server Security Group"
   }
 }
+## SG App Tier (Bastion Host) ##
+
+resource "aws_security_group" "ssh_security_group" {
+  name        = "SSH Access"
+  description = "Enable ssh access on port 22"
+  vpc_id      = aws_vpc.three_tier_app_vpc.id
+
+  ingress {
+    description = "ssh access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.ssh_locate]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ssh into app tier Security group"
+  }
+}
+
 
 # SG App Tier
 resource "aws_security_group" "appserver_security_group" {
   name        = "App Server Security Group"
-  description = "Allow traffic from web tier"
+  description = "Allow traffic from app ALB"
   vpc_id      = aws_vpc.three_tier_app_vpc.id
 
-  # Inbound from Web Servers on port 8080 (or your app port)
+  # Inbound from App ALB on port 8080
   ingress {
-    from_port       = 8080 # Or your application port
+    from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
-    security_groups = [aws_security_group.webserver_security_group.id]
-    description     = "Allow traffic from Web Tier"
+    security_groups = [aws_security_group.app_alb_security_group.id]
+    description     = "Allow traffic from App ALB"
+  }
+  
+  ingress {
+    description = "ssh access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.ssh_locate]
   }
 
   # Allow all outbound traffic

@@ -20,7 +20,7 @@ resource "aws_sns_topic" "guardduty_findings" {
 resource "aws_sns_topic_subscription" "gd_email" {
   topic_arn = aws_sns_topic.guardduty_findings.arn
   protocol  = "email"
-  endpoint  = "dennishelen212@gmail.com"
+  endpoint  = var.notification_email # Use the variable for email
 }
 # Create an EventBridge rule for GuardDuty findings
 resource "aws_cloudwatch_event_rule" "guardduty_findings_rule" {

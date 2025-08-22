@@ -118,3 +118,27 @@ resource "aws_iam_role_policy_attachment" "inspector_agent_app_policy_attach" {
   role       = aws_iam_role.app_tier_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+# IAM instance profile for Bastion
+resource "aws_iam_instance_profile" "bastion_app_profile" {
+  name = "BastionAppProfile"
+  role = aws_iam_role.bastion_app_role.name
+}
+
+resource "aws_iam_role" "bastion_app_role" {
+  name = "BastionAppRole"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}

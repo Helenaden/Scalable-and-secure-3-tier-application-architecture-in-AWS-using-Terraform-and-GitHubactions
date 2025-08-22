@@ -139,8 +139,9 @@ resource "aws_autoscaling_group" "app_asg" {
   desired_capacity          = 2
   max_size                  = 2
   min_size                  = 2
-  health_check_type         = "EC2"
+  health_check_type         = "ELB"
   health_check_grace_period = 300
+  target_group_arns         = [aws_lb_target_group.app_target_group.arn]
 
   launch_template {
     id      = aws_launch_template.app_tier_template.id
@@ -153,7 +154,50 @@ resource "aws_autoscaling_group" "app_asg" {
     propagate_at_launch = true
   }
 }
+### Launch Template for Bastion Host ###
+resource "aws_launch_template" "bastion_app_tier_template" {
+  name_prefix   = "bastion-app-tier-"
+  image_id      = data.aws_ami.amazon_linux_2.id
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.terraform_key_3.key_name
 
+  user_data = base64encode(data.template_file.app_user_data.rendered)
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size = 8
+      encrypted   = true
+    }
+  }
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.bastion_app_profile.name
+  }
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.ssh_security_group.id]
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "Bastion-App-Tier-Instance"
+    }
+  }
+}
+resource "aws_instance" "bastion_host" {
+  ami                    = data.aws_ami.amazon_linux_2.id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.public-web-subnet-1.id
+  vpc_security_group_ids = [aws_security_group.ssh_security_group.id]
+  key_name               = aws_key_pair.terraform_key_3.key_name
+
+  tags = {
+    Name = "Bastion-App-Tier-Instance"
+  }
+}
 # Instance profiles to attach the IAM roles to the EC2 instances
 resource "aws_iam_instance_profile" "web_profile" {
   name = "web-tier-profile"
