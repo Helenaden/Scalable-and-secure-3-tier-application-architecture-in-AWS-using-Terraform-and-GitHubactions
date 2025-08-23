@@ -52,11 +52,13 @@ jobs:
         env:
           TF_VARS: ${{ secrets.TF_VARS_CONTENT }}
         run: echo "$TF_VARS" > terraform.tfvars
+        working-directory: ./terraform
 
       # Step 5: Initialize the Terraform project.
       - name: Terraform Init
         id: init
         run: terraform init
+        working-directory: ./terraform
 
       # Step 6: Run Checkov to scan for IaC security vulnerabilities.
       - name: Run Checkov
@@ -64,20 +66,23 @@ jobs:
         uses: bridgecrewio/checkov-action@v12
         with:
           framework: terraform
-          directory: '.'
+          directory: './terraform'
         continue-on-error: true
 
       # Step 7: Validate the Terraform code.
       - name: Terraform Validate
         id: validate
         run: terraform validate
+        working-directory: ./terraform
 
       # Step 8: Create a Terraform plan.
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -var-file=terraform.tfvars
+        working-directory: ./terraform
 
       # Step 9: Apply the Terraform plan.
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve -var-file=terraform.tfvars
+        working-directory: ./terraform
