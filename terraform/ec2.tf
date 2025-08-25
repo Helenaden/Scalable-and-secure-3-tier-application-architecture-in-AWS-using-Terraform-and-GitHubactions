@@ -39,14 +39,64 @@ resource "aws_secretsmanager_secret_version" "ec2_private_key_version" {
   secret_string = tls_private_key.rsa.private_key_pem
 }
 
-### User Data Script for Web Server ###
-data "template_file" "web_user_data" {
-  template = file("${path.module}/user_data/web_user_data.sh")
-}
-
-### User Data Script for App Server ###
-data "template_file" "app_user_data" {
-  template = file("${path.module}/user_data/app_user_data.sh")
+### User Data Scripts ###
+locals {
+  web_user_data = <<-EOF
+    #!/bin/bash
+    echo "Updating package list..."
+    yum update -y
+    
+    echo "Installing Nginx..."
+    yum install -y nginx
+    
+    echo "Starting Nginx service..."
+    systemctl start nginx
+    
+    echo "Enabling Nginx to start on boot..."
+    systemctl enable nginx
+    
+    echo "Creating a simple index.html file..."
+    echo '<h1>Hello from your Web Server!</h1>' > /var/www/html/index.html
+    
+    echo "Web server setup complete!"
+  EOF
+  
+  app_user_data = <<-EOF
+    #!/bin/bash
+    echo "Updating package list..."
+    yum update -y
+    
+    echo "Installing Node.js and npm..."
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install 20
+    
+    echo "Creating a simple Node.js application file (app.js)..."
+    cat > /home/ec2-user/app.js << 'EOL'
+const http = require('http');
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('Hello from your Application Server!');
+});
+server.listen(8080, () => {
+  console.log('Server running at http://localhost:8080/');
+});
+EOL
+    
+    echo "Installing PM2 process manager..."
+    npm install -g pm2
+    
+    echo "Starting the application with PM2..."
+    pm2 start /home/ec2-user/app.js --name "my-node-app"
+    
+    echo "Configuring PM2 to start on reboot..."
+    pm2 startup
+    pm2 save
+    
+    echo "Application server setup complete!"
+  EOF
 }
 
 ### Launch Template for Web Tier ###
@@ -55,7 +105,7 @@ resource "aws_launch_template" "web_tier_template" {
   image_id        = data.aws_ami.amazon_linux_2.id
   instance_type   = "t2.micro"
   key_name        = aws_key_pair.terraform_key_3.key_name
-  user_data       = base64encode(data.template_file.web_user_data.rendered)
+  user_data       = base64encode(local.web_user_data)
 
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -85,7 +135,7 @@ resource "aws_launch_template" "app_tier_template" {
   image_id        = data.aws_ami.amazon_linux_2.id
   instance_type   = "t2.micro"
   key_name        = aws_key_pair.terraform_key_3.key_name
-  user_data       = base64encode(data.template_file.app_user_data.rendered)
+  user_data       = base64encode(local.app_user_data)
 
   block_device_mappings {
     device_name = "/dev/xvda"
@@ -161,7 +211,7 @@ resource "aws_launch_template" "bastion_app_tier_template" {
   instance_type = "t2.micro"
   key_name      = aws_key_pair.terraform_key_3.key_name
 
-  user_data = base64encode(data.template_file.app_user_data.rendered)
+  user_data = base64encode(local.app_user_data)
 
   block_device_mappings {
     device_name = "/dev/xvda"

@@ -87,7 +87,7 @@ resource "aws_lb" "app_alb" {
   subnets            = [aws_subnet.private-app-subnet-1.id, aws_subnet.private-app-subnet-2.id]
 
   tags = {
-    Name = "App ALB (Internal)"
+    Name = "App ALB Internal"
   }
 }
 
