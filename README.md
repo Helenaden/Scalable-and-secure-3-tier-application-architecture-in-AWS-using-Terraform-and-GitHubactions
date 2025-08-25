@@ -4,7 +4,7 @@
 
 In software, *how* you build something is just as important as *what* you build.
 
-Back in the early days, applications were built as **1-tier monoliths**. Everything—the UI, the logic, and the data—lived in one single block of code. It worked fine at first, but as systems grew, these monoliths became messy, difficult to maintain, and nearly impossible to scale.
+Back in the early days, applications were built as **1-tier monoliths**. Everything, the UI, the logic, and the data, lived in one single block of code. It worked fine at first, but as systems grew, these monoliths became messy, difficult to maintain, and nearly impossible to scale.
 
 Then came **2-tier client-server systems**. Better? Yes! The client talked to a server that handled both business logic and the database. But this setup still had major drawbacks: one server doing too much, becoming a bottleneck and single point of failure.
 
