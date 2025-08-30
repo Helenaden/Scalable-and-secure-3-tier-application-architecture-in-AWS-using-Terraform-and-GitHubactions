@@ -94,7 +94,6 @@ data "aws_iam_policy_document" "app_tier_policy_doc" {
       "s3:ListBucket",
     ]
     resources = [
-      # Replace with your S3 bucket ARN if you have one for the app tier.
       aws_s3_bucket.app_files.arn,
       "${aws_s3_bucket.app_files.arn}/*",
     ]

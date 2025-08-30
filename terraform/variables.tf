@@ -2,6 +2,7 @@ variable "aws_region" {
   description = "The AWS region to deploy resources into"
   type        = string
 }
+
 variable "vpc_cidr" {
   description = "The CIDR block for the VPC"
   type        = string
@@ -46,26 +47,27 @@ variable "ssh_locate" {
   description = "The CIDR block to allow SSH access from."
   type        = string
 }
+
 variable "db_username" {
   description = "The username for the RDS database."
   type        = string
 }
+
 variable "db_instance_class" {
   description = "The instance type for the RDS database (e.g., db.t3.micro)"
   type        = string
-  default     = "db.t3.micro"
 }
 
 variable "multi_az_deployment" {
   description = "Specifies whether the database instance is a multi-AZ deployment"
   type        = bool
-  default     = false
 }
-# --- S3 Variables ---
+
 variable "s3_bucket_name" {
   description = "The name for the S3 bucket to store application files"
   type        = string
 }
+
 variable "notification_email" {
   description = "The email address to receive SNS notifications."
   type        = string
